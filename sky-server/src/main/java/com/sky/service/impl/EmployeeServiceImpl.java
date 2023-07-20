@@ -68,7 +68,7 @@ public class EmployeeServiceImpl implements EmployeeService {
      * @param employeeDTO
      */
     public void save(EmployeeDTO employeeDTO) {
-        System.out.println("当前线程的id：" + Thread.currentThread().getId());
+//        System.out.println("当前线程的id：" + Thread.currentThread().getId());
 
         Employee employee = new Employee();
 
@@ -88,7 +88,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         //设置当前记录创建人id和修改人id
         employee.setCreateUser(BaseContext.getCurrentId());//目前写个假数据，后期修改
         employee.setUpdateUser(BaseContext.getCurrentId());
-        System.out.println("idididid::"+BaseContext.getCurrentId());
+//        System.out.println("idididid::"+BaseContext.getCurrentId());
 
         employeeMapper.insert(employee);//后续步骤定义
     }
