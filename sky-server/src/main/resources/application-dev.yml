@@ -9,6 +9,6 @@ sky:
 
   alioss:
     endpoint: oss-cn-qingdao.aliyuncs.com
-    access-key-id: ****************(自己的alioss keyid)
-    access-key-secret: *****************（自己的alioss  keyscreen）
+    access-key-id: LTAI5tLoUtysKNWT1XV4mhfe
+    access-key-secret: BZ1w7nIetYIrdk2OlSv1utfNU3NwjT
     bucket-name: zhangxiaotian-sky-takeout
