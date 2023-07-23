@@ -81,4 +81,20 @@ public class SetmealController {
         setmealService.update(setmealDTO);
         return Result.success();
     }
+
+    /**
+     * - 可以对状态为起售的套餐进行停售操作，可以对状态为停售的套餐进行起售操作
+     * - 起售的套餐可以展示在用户端，停售的套餐不能展示在用户端
+     * - 起售套餐时，如果套餐内包含停售的菜品，则不能起售
+     * 套餐起售停售
+     * @param status
+     * @param id
+     * @return
+     */
+    @PostMapping("/status/{status}")
+    @ApiOperation("套餐起售停售")
+    public Result startOrStop(@PathVariable Integer status,Long id){
+        setmealService.startOrStop(status,id);
+        return Result.success();
+    }
 }

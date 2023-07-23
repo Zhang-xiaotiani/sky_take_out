@@ -6,9 +6,12 @@ import com.sky.constant.MessageConstant;
 import com.sky.constant.StatusConstant;
 import com.sky.dto.SetmealDTO;
 import com.sky.dto.SetmealPageQueryDTO;
+import com.sky.entity.Dish;
 import com.sky.entity.Setmeal;
 import com.sky.entity.SetmealDish;
 import com.sky.exception.DeletionNotAllowedException;
+import com.sky.exception.SetmealEnableFailedException;
+import com.sky.mapper.DishMapper;
 import com.sky.mapper.SetmealDishMapper;
 import com.sky.mapper.SetmealMapper;
 import com.sky.result.PageResult;
@@ -37,6 +40,8 @@ public class SetmealServiceImpl implements SetmealService {
     private SetmealMapper setmealMapper;
     @Autowired
     private SetmealDishMapper setmealDishMapper;
+    @Autowired
+    private DishMapper dishMapper;
     /**
      * 分页查询套餐
      * @param setmealPageQueryDTO
@@ -134,5 +139,35 @@ public class SetmealServiceImpl implements SetmealService {
         });
         //3、重新插入套餐和菜品的关联关系，操作setmeal_dish表，执行insert
         setmealDishMapper.insertBatch(setmealDishes);
+    }
+
+    /**
+     * - 可以对状态为起售的套餐进行停售操作，可以对状态为停售的套餐进行起售操作
+     * - 起售的套餐可以展示在用户端，停售的套餐不能展示在用户端
+     * - 起售套餐时，如果套餐内包含停售的菜品，则不能起售
+     * 套餐起售停售
+     * @param status
+     * @param id
+     * @return
+     */
+    public void startOrStop(Integer status, Long id) {
+//         起售套餐时，如果套餐内包含停售的菜品，则不能起售
+        if (status == StatusConstant.ENABLE){
+            List<Dish> dishes = dishMapper.getBySetmealId(id);
+            if (dishes != null && dishes.size() > 0){
+                dishes.forEach(dish -> {
+                    if (dish.getStatus() == StatusConstant.DISABLE){
+                        throw new SetmealEnableFailedException(MessageConstant.SETMEAL_ENABLE_FAILED);
+                    }
+                });
+            }
+
+        }
+
+        Setmeal setmeal = Setmeal.builder()
+                .status(status)
+                .id(id)
+                .build();
+        setmealMapper.update(setmeal);
     }
 }
