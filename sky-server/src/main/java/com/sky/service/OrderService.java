@@ -1,9 +1,6 @@
 package com.sky.service;
 
-import com.sky.dto.OrdersConfirmDTO;
-import com.sky.dto.OrdersPageQueryDTO;
-import com.sky.dto.OrdersPaymentDTO;
-import com.sky.dto.OrdersSubmitDTO;
+import com.sky.dto.*;
 import com.sky.result.PageResult;
 import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderStatisticsVO;
@@ -87,4 +84,14 @@ public interface OrderService {
      * @return
      */
     void confirm(OrdersConfirmDTO ordersConfirmDTO);
+
+    /**
+     * - 商家拒单其实就是将订单状态修改为“已取消”
+     * - 只有订单处于“待接单”状态时可以执行拒单操作
+     * - 商家拒单时需要指定拒单原因
+     * - 商家拒单时，如果用户已经完成了支付，需要为用户退款
+     * @param ordersRejectionDTO
+     * @return
+     */
+    void rejection(OrdersRejectionDTO ordersRejectionDTO) throws Exception;
 }

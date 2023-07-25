@@ -6,10 +6,7 @@ import com.github.pagehelper.PageHelper;
 import com.github.xiaoymin.knife4j.core.util.CollectionUtils;
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
-import com.sky.dto.OrdersConfirmDTO;
-import com.sky.dto.OrdersPageQueryDTO;
-import com.sky.dto.OrdersPaymentDTO;
-import com.sky.dto.OrdersSubmitDTO;
+import com.sky.dto.*;
 import com.sky.entity.*;
 import com.sky.exception.AddressBookBusinessException;
 import com.sky.exception.OrderBusinessException;
@@ -27,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -399,6 +397,47 @@ public class OrderServiceImpl implements OrderService {
                 .status(Orders.CONFIRMED)
                 .id(ordersConfirmDTO.getId())
                 .build();
+        orderMapper.update(orders);
+    }
+
+    /**
+     * - 商家拒单其实就是将订单状态修改为“已取消”
+     * - 只有订单处于“待接单”状态时可以执行拒单操作
+     * - 商家拒单时需要指定拒单原因
+     * - 商家拒单时，如果用户已经完成了支付，需要为用户退款
+     * @param ordersRejectionDTO
+     * @return
+     */
+    @Override
+    public void rejection(OrdersRejectionDTO ordersRejectionDTO) throws Exception{
+        Orders ordersDB = orderMapper.getById(ordersRejectionDTO.getId());
+
+        // 订单只有存在且状态为2（待接单）才可以拒单
+        if (ordersDB == null && !ordersDB.getStatus().equals(Orders.TO_BE_CONFIRMED)){
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+
+        //支付状态：已支付  ->   退款
+        if (ordersDB.getPayStatus() == Orders.PAID){
+//         ！！！！！！！！   非商户，未实现！！！！！！！！
+//            //用户已支付，需要退款
+//            String refund = weChatPayUtil.refund(
+//                    ordersDB.getNumber(),
+//                    ordersDB.getNumber(),
+//                    new BigDecimal(0.01),
+//                    new BigDecimal(0.01));
+//            log.info("申请退款：{}", refund);
+        }
+        // 拒单需要退款，根据订单id更新订单状态、拒单原因、取消时间
+        Orders orders = new Orders();
+        orders.setPayStatus(Orders.REFUND);
+        orders.setId(ordersDB.getId());
+        orders.setStatus(Orders.CANCELLED);
+        orders.setRejectionReason(ordersRejectionDTO.getRejectionReason());
+        orders.setCancelTime(LocalDateTime.now());
+        //用户取消专属？？？不知道
+        orders.setCancelReason(ordersRejectionDTO.getRejectionReason());
+
         orderMapper.update(orders);
     }
 }

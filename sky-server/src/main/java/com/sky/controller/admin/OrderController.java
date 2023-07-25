@@ -3,6 +3,7 @@ package com.sky.controller.admin;
 import com.sky.dto.OrdersConfirmDTO;
 import com.sky.dto.OrdersDTO;
 import com.sky.dto.OrdersPageQueryDTO;
+import com.sky.dto.OrdersRejectionDTO;
 import com.sky.entity.Orders;
 import com.sky.result.PageResult;
 import com.sky.result.Result;
@@ -77,6 +78,21 @@ public class OrderController {
     @ApiOperation("接单")
     public Result confirm(@RequestBody OrdersConfirmDTO ordersConfirmDTO){
         orderService.confirm(ordersConfirmDTO);
+        return Result.success();
+    }
+
+    /**
+     * - 商家拒单其实就是将订单状态修改为“已取消”
+     * - 只有订单处于“待接单”状态时可以执行拒单操作
+     * - 商家拒单时需要指定拒单原因
+     * - 商家拒单时，如果用户已经完成了支付，需要为用户退款
+     * @param ordersRejectionDTO
+     * @return
+     */
+    @PutMapping("/rejection")
+    @ApiOperation("拒绝接单")
+    public Result rejection(@RequestBody OrdersRejectionDTO ordersRejectionDTO) throws Exception{
+        orderService.rejection(ordersRejectionDTO);
         return Result.success();
     }
 }
