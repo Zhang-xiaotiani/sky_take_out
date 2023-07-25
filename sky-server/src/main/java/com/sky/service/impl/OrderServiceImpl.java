@@ -21,6 +21,7 @@ import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -216,5 +217,47 @@ public class OrderServiceImpl implements OrderService {
         res.setOrderDetailList(orderDetailList);
 
         return res;
+    }
+
+    /**
+     * 取消订单
+     * @param id
+     * @return
+     */
+    @Override
+    public void cancel(Long id) throws Exception{
+        Orders orders = orderMapper.getById(id);
+
+        //订单为空
+        if (orders == null){
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+        //订单状态异常
+        //订单状态 1待付款 2待接单 3已接单 4派送中 5已完成 6已取消
+        if (orders.getStatus() > 2){
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+
+        //创建更新需要传入的对象
+        Orders res = new Orders();
+
+        //待接单   --->   退款？
+        if (orders.getStatus() == Orders.TO_BE_CONFIRMED){
+            //调用微信支付退款接口 ,不是商户未实现
+//            weChatPayUtil.refund(
+//                    orders.getNumber(), //商户订单号
+//                    orders.getNumber(), //商户退款单号
+//                    new BigDecimal(0.01),//退款金额，单位 元
+//                    new BigDecimal(0.01));//原订单金额
+            //修改订单状态
+
+            res.setPayStatus(Orders.REFUND);
+        }
+
+        res.setStatus(Orders.CANCELLED);
+        res.setCancelReason("用户取消");
+        res.setCancelTime(LocalDateTime.now());
+        res.setId(orders.getId());
+        orderMapper.update(res);
     }
 }

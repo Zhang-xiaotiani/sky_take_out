@@ -65,6 +65,7 @@ public class OrderController {
 
     /**
      * 历史订单查询
+     *
      * @param page
      * @param pageSize
      * @param status   订单状态 1待付款 2待接单 3已接单 4派送中 5已完成 6已取消
@@ -73,14 +74,29 @@ public class OrderController {
     @GetMapping("/historyOrders")
     @ApiOperation("查看历史订单")
     public Result<PageResult> page(int page, int pageSize, Integer status) {
+        log.info("查看历史订单：{}", page, pageSize, status);
         PageResult pageResult = orderService.pageQuery(page, pageSize, status);
         return Result.success(pageResult);
     }
 
     @GetMapping("/orderDetail/{id}")
     @ApiOperation("查询订单详情")
-    public Result<OrderVO> details(@PathVariable("id") Long id){
+    public Result<OrderVO> details(@PathVariable("id") Long id) {
+        log.info("查询订单详情：{}", id);
         OrderVO orderVO = orderService.details(id);
         return Result.success(orderVO);
+    }
+
+    /**
+     * 取消订单
+     * @param id
+     * @return
+     */
+    @PutMapping("/cancel/{id}")
+    @ApiOperation("取消订单")
+    public Result cancel(@PathVariable("id") Long id) throws Exception{
+        log.info("取消订单：{}",id);
+        orderService.cancel(id);
+        return Result.success();
     }
 }
