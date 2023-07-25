@@ -25,7 +25,7 @@ import java.util.List;
  * @Description TODO
  * @createTime 2023年07月25日 09:35:00
  */
-@RestController
+@RestController("UserOrderController")
 @RequestMapping("/user/order")
 @Api(tags = "C端订单相关接口")
 @Slf4j
