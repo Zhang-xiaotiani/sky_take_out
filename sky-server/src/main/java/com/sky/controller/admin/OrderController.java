@@ -1,9 +1,6 @@
 package com.sky.controller.admin;
 
-import com.sky.dto.OrdersConfirmDTO;
-import com.sky.dto.OrdersDTO;
-import com.sky.dto.OrdersPageQueryDTO;
-import com.sky.dto.OrdersRejectionDTO;
+import com.sky.dto.*;
 import com.sky.entity.Orders;
 import com.sky.result.PageResult;
 import com.sky.result.Result;
@@ -93,6 +90,20 @@ public class OrderController {
     @ApiOperation("拒绝接单")
     public Result rejection(@RequestBody OrdersRejectionDTO ordersRejectionDTO) throws Exception{
         orderService.rejection(ordersRejectionDTO);
+        return Result.success();
+    }
+
+    /**
+     * - 取消订单其实就是将订单状态修改为“已取消”
+     * - 商家取消订单时需要指定取消原因
+     * - 商家取消订单时，如果用户已经完成了支付，需要为用户退款
+     * @param ordersCancelDTO
+     * @return
+     */
+    @PutMapping("/cancel")
+    @ApiOperation("取消订单")
+    public Result cancel(@RequestBody OrdersCancelDTO ordersCancelDTO) throws Exception{
+        orderService.cancelByAdmin(ordersCancelDTO);
         return Result.success();
     }
 }

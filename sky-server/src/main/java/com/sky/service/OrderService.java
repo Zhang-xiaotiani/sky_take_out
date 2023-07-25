@@ -94,4 +94,13 @@ public interface OrderService {
      * @return
      */
     void rejection(OrdersRejectionDTO ordersRejectionDTO) throws Exception;
+
+    /**
+     * - 取消订单其实就是将订单状态修改为“已取消”
+     * - 商家取消订单时需要指定取消原因
+     * - 商家取消订单时，如果用户已经完成了支付，需要为用户退款
+     * @param ordersCancelDTO
+     * @return
+     */
+    void cancelByAdmin(OrdersCancelDTO ordersCancelDTO);
 }

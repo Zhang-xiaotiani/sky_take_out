@@ -19,6 +19,7 @@ import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderStatisticsVO;
 import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,6 +39,7 @@ import java.util.stream.Collectors;
  * @createTime 2023年07月25日 09:36:00
  */
 @Service
+@Slf4j
 public class OrderServiceImpl implements OrderService {
 
     @Autowired
@@ -428,6 +430,7 @@ public class OrderServiceImpl implements OrderService {
 //                    new BigDecimal(0.01));
 //            log.info("申请退款：{}", refund);
         }
+        log.info("模拟退款...");
         // 拒单需要退款，根据订单id更新订单状态、拒单原因、取消时间
         Orders orders = new Orders();
         orders.setPayStatus(Orders.REFUND);
@@ -438,6 +441,38 @@ public class OrderServiceImpl implements OrderService {
         //用户取消专属？？？不知道
         orders.setCancelReason(ordersRejectionDTO.getRejectionReason());
 
+        orderMapper.update(orders);
+    }
+
+    /**
+     * - 取消订单其实就是将订单状态修改为“已取消”
+     * - 商家取消订单时需要指定取消原因
+     * - 商家取消订单时，如果用户已经完成了支付，需要为用户退款
+     * @param ordersCancelDTO
+     * @return
+     */
+    @Override
+    public void cancelByAdmin(OrdersCancelDTO ordersCancelDTO) {
+        Orders ordersDB = orderMapper.getById(ordersCancelDTO.getId());
+
+        if (ordersDB.getPayStatus() == Orders.PAID){
+            //退款操作
+            //！！！！！！！！！！！！非商户未实现！！！！！！！
+//            String refund = weChatPayUtil.refund(
+//                    ordersDB.getNumber(),
+//                    ordersDB.getNumber(),
+//                    new BigDecimal(0.01),
+//                    new BigDecimal(0.01));
+//            log.info("申请退款：{}", refund);
+        }
+
+        // 管理端取消订单需要退款，根据订单id更新订单状态、取消原因、取消时间
+        log.info("模拟退款...");
+        Orders orders = new Orders();
+        orders.setId(ordersCancelDTO.getId());
+        orders.setStatus(Orders.CANCELLED);
+        orders.setCancelReason(ordersCancelDTO.getCancelReason());
+        orders.setCancelTime(LocalDateTime.now());
         orderMapper.update(orders);
     }
 }
