@@ -21,11 +21,9 @@ import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +51,7 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private WeChatPayUtil weChatPayUtil;
 
-    private Long userId = BaseContext.getCurrentId();
+
 
     /**
      * 用户下单
@@ -63,6 +61,8 @@ public class OrderServiceImpl implements OrderService {
      */
     @Transactional//测试回滚
     public OrderSubmitVO submit(OrdersSubmitDTO ordersSubmitDTO) {
+        Long userId = BaseContext.getCurrentId();
+
         //1、处理业务异常（地址簿为空、购物车为空）
         AddressBook addressBook = addressBookMapper.getById(ordersSubmitDTO.getAddressBookId());
         if (addressBook == null)
@@ -122,7 +122,7 @@ public class OrderServiceImpl implements OrderService {
     public OrderPaymentVO payment(OrdersPaymentDTO ordersPaymentDTO) throws Exception {
         // 当前登录用户id
 
-        User user = userMapper.getById(userId);
+        User user = userMapper.getById(BaseContext.getCurrentId());
 
         //调用微信支付接口，生成预支付交易单
 //        JSONObject jsonObject = weChatPayUtil.pay(
@@ -178,7 +178,7 @@ public class OrderServiceImpl implements OrderService {
         PageHelper.startPage(pageNum,pageSize);
 
         OrdersPageQueryDTO ordersPageQueryDTO = new OrdersPageQueryDTO();
-        ordersPageQueryDTO.setUserId(userId);
+        ordersPageQueryDTO.setUserId(BaseContext.getCurrentId());
         ordersPageQueryDTO.setStatus(status);
 
         //分页查询
@@ -259,5 +259,32 @@ public class OrderServiceImpl implements OrderService {
         res.setCancelTime(LocalDateTime.now());
         res.setId(orders.getId());
         orderMapper.update(res);
+    }
+
+    /**
+     * 再来一单
+     *
+     * @param id
+     */
+    @Override
+    public void repetition(Long id) {
+        Long userId = BaseContext.getCurrentId();
+        //若购物车中已有商品
+        shoppingCartMapper.deleteByUserId(userId);
+
+        //根据订单 id获取 详细
+        List<OrderDetail> orderDetails = orderDetailMapper.getByOrderId(id);
+        List<ShoppingCart> res = new ArrayList<>();
+        orderDetails.forEach(orderDetail -> {
+            ShoppingCart shoppingCart = new ShoppingCart();
+            //复制数据，但是忽略id
+            BeanUtils.copyProperties(orderDetail,shoppingCart,"id");
+            shoppingCart.setUserId(userId);
+            shoppingCart.setCreateTime(LocalDateTime.now());
+
+            res.add(shoppingCart);
+        });
+
+        shoppingCartMapper.insertBatch(res);
     }
 }
