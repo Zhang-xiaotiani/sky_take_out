@@ -6,6 +6,7 @@ import com.github.pagehelper.PageHelper;
 import com.github.xiaoymin.knife4j.core.util.CollectionUtils;
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
+import com.sky.dto.OrdersConfirmDTO;
 import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
@@ -18,6 +19,7 @@ import com.sky.result.PageResult;
 import com.sky.service.OrderService;
 import com.sky.utils.WeChatPayUtil;
 import com.sky.vo.OrderPaymentVO;
+import com.sky.vo.OrderStatisticsVO;
 import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
 import org.springframework.beans.BeanUtils;
@@ -87,6 +89,11 @@ public class OrderServiceImpl implements OrderService {
         orders.setPhone(addressBook.getPhone());
         orders.setConsignee(addressBook.getConsignee());
         orders.setUserId(userId);
+        orders.setAddress(addressBook.getProvinceName() + addressBook.getCityName() + addressBook.getDistrictName() + addressBook.getDetail());
+        orders.setUserName(addressBook.getConsignee());
+        if (orders.getRemark() == null) {
+            orders.setRemark("无");
+        }
 
         orderMapper.insert(orders);
 
@@ -207,7 +214,7 @@ public class OrderServiceImpl implements OrderService {
     /**
      * 查询订单详情
      *
-     * @param id
+     * @param id 订单id
      * @return
      */
     public OrderVO details(Long id) {
@@ -305,9 +312,10 @@ public class OrderServiceImpl implements OrderService {
         Page<Orders> page = orderMapper.pageQuery(ordersPageQueryDTO);
 
         // 部分订单状态，需要额外返回订单菜品信息，将Orders转化为OrderVO
-//        List<OrderVO> orderVOList = getOrderVOList(page);
+        //todo
+        List<OrderVO> orderVOList = getOrderVOList(page);
 
-        return new PageResult(page.getTotal(), page.getResult());
+        return new PageResult(page.getTotal(), orderVOList);
     }
 
     private List<OrderVO> getOrderVOList(Page<Orders> page) {
@@ -353,5 +361,44 @@ public class OrderServiceImpl implements OrderService {
 
         // 将该订单对应的所有菜品信息拼接在一起
         return String.join("", orderDishList);
+    }
+
+    /**
+     * 各个状态的订单数量统计(admin)
+     *
+     * @return
+     */
+    @Override
+    public OrderStatisticsVO statistics() {
+        OrderStatisticsVO orderStatisticsVO = new OrderStatisticsVO();
+
+//        订单状态 1待付款 2待接单 3已接单 4派送中 5已完成 6已取消
+        //待接单数量
+        Integer toBeConfirmed = orderMapper.countStatus(Orders.TO_BE_CONFIRMED);//2
+        //待派送数量
+        Integer confirmed = orderMapper.countStatus(Orders.CONFIRMED);//3
+        //派送中数量
+        Integer deliveryInProgress = orderMapper.countStatus(Orders.DELIVERY_IN_PROGRESS);//4
+
+        orderStatisticsVO.setConfirmed(confirmed);
+        orderStatisticsVO.setDeliveryInProgress(deliveryInProgress);
+        orderStatisticsVO.setToBeConfirmed(toBeConfirmed);
+
+        return orderStatisticsVO;
+    }
+
+    /**
+     * 接单（admin）
+     *
+     * @param ordersConfirmDTO
+     * @return
+     */
+    @Override
+    public void confirm(OrdersConfirmDTO ordersConfirmDTO) {
+        Orders orders = Orders.builder()
+                .status(Orders.CONFIRMED)
+                .id(ordersConfirmDTO.getId())
+                .build();
+        orderMapper.update(orders);
     }
 }

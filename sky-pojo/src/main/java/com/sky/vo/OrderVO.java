@@ -13,6 +13,10 @@ import java.util.List;
 @AllArgsConstructor
 public class OrderVO extends Orders implements Serializable {
 
+    //地址
+    //error ?
+    private String address;
+
     //订单菜品信息
     private String orderDishes;
 
