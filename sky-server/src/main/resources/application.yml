@@ -66,3 +66,8 @@ sky:
     weChatPayCertFilePath: ${sky.wechat.weChatPayCertFilePath}
     notifyUrl: ${sky.wechat.notifyUrl}
     refundNotifyUrl: ${sky.wechat.refundNotifyUrl}
+
+  shop:
+    address: 辽宁省大连市甘井子区凌工路1号
+  baidu:
+    ak: mmBKHSneBmnsEGi9D7hRcaK27EXBLRHU
