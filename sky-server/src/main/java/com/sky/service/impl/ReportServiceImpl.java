@@ -1,11 +1,13 @@
 package com.sky.service.impl;
 
+import com.sky.dto.GoodsSalesDTO;
 import com.sky.entity.Orders;
 import com.sky.entity.User;
 import com.sky.mapper.OrderMapper;
 import com.sky.mapper.UserMapper;
 import com.sky.service.ReportService;
 import com.sky.vo.OrderReportVO;
+import com.sky.vo.SalesTop10ReportVO;
 import com.sky.vo.TurnoverReportVO;
 import com.sky.vo.UserReportVO;
 import io.swagger.models.auth.In;
@@ -21,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author admin
@@ -103,9 +106,9 @@ public class ReportServiceImpl implements ReportService {
         for (LocalDate date : dateList) {
             LocalDateTime dateMaxOfOneDay = LocalDateTime.of(date, LocalTime.MAX);
             LocalDateTime dateMinOfOneDay = LocalDateTime.of(date, LocalTime.MIN);
-            Integer newUserCount =getUserCount(dateMinOfOneDay,dateMaxOfOneDay);
+            Integer newUserCount = getUserCount(dateMinOfOneDay, dateMaxOfOneDay);
             newUserList.add(newUserCount);
-            Integer UserCount =getUserCount(null,dateMaxOfOneDay);
+            Integer UserCount = getUserCount(null, dateMaxOfOneDay);
             totalUserList.add(UserCount);
         }
 
@@ -116,7 +119,7 @@ public class ReportServiceImpl implements ReportService {
                 .build();
     }
 
-    private Integer getUserCount(LocalDateTime begin,LocalDateTime end){
+    private Integer getUserCount(LocalDateTime begin, LocalDateTime end) {
         Map map = new HashMap();
         map.put("begin", begin);
         map.put("end", end);
@@ -124,12 +127,12 @@ public class ReportServiceImpl implements ReportService {
     }
 
     /**
-     *
      * - 根据起始时间和终止时间查询订单
      * - 有效订单指状态为 “已完成” 的订单
      * - 基于可视化报表的折线图展示订单数据，X轴为日期，Y轴为订单数量
      * - 根据时间选择区间，展示每天的订单总数和有效订单数
      * - 展示所选时间区间内的有效订单数、总订单数、订单完成率，订单完成率 = 有效订单数 / 总订单数 * 100%
+     *
      * @param begin
      * @param end
      * @return
@@ -156,20 +159,48 @@ public class ReportServiceImpl implements ReportService {
         Double orderCompletionRate = totalOrderCount == 0 ? 0.0 : validOrderCount.doubleValue() / totalOrderCount;
 
         return OrderReportVO.builder()
-                .dateList(StringUtils.join(dateList,","))
-                .orderCountList(StringUtils.join(totalOrdersList,","))//每日订单总数
-                .validOrderCountList(StringUtils.join(completedOrdersList,","))//每日完成订单数
+                .dateList(StringUtils.join(dateList, ","))
+                .orderCountList(StringUtils.join(totalOrdersList, ","))//每日订单总数
+                .validOrderCountList(StringUtils.join(completedOrdersList, ","))//每日完成订单数
                 .totalOrderCount(totalOrderCount)
                 .validOrderCount(validOrderCount)
                 .orderCompletionRate(orderCompletionRate)
                 .build();
     }
 
-    private Integer getOrdersCount(LocalDateTime begin,LocalDateTime end,Integer status){
+    private Integer getOrdersCount(LocalDateTime begin, LocalDateTime end, Integer status) {
         Map map = new HashMap();
         map.put("begin", begin);
         map.put("end", end);
-        map.put("status",status);
+        map.put("status", status);
         return orderMapper.getUserCount(map);
+    }
+
+    /**
+     * 查询销量排名top10
+     * - 根据时间选择区间，展示销量前10的商品（包括菜品和套餐）
+     * - 基于可视化报表的柱状图降序展示商品销量
+     * - 此处的销量为商品销售的份数
+     *
+     * @param begin
+     * @param end
+     * @return
+     */
+    @Override
+    public SalesTop10ReportVO getSalesTop10(LocalDate begin, LocalDate end) {
+        LocalDateTime endTime = LocalDateTime.of(end, LocalTime.MAX);
+        LocalDateTime beginTime = LocalDateTime.of(begin, LocalTime.MIN);
+
+        List<GoodsSalesDTO> goodsSalesDTOList = orderMapper.getSalesTop10(beginTime, endTime);
+
+        //商品名称列表，以逗号分隔，例如：鱼香肉丝,宫保鸡丁,水煮鱼
+        String nameList = StringUtils.join(goodsSalesDTOList.stream().map(GoodsSalesDTO::getName).collect(Collectors.toList()), ",");
+        //销量列表，以逗号分隔，例如：260,215,200
+        String numberList = StringUtils.join(goodsSalesDTOList.stream().map(GoodsSalesDTO::getNumber).collect(Collectors.toList()), ",");
+
+        return SalesTop10ReportVO.builder()
+                .nameList(nameList)
+                .numberList(numberList)
+                .build();
     }
 }
