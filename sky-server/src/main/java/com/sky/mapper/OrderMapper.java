@@ -72,10 +72,17 @@ public interface OrderMapper {
     List<Orders> getByStatusAndOrderTimeLT(Integer status, LocalDateTime orderTime);
 
     /**
-     * 根据起始日期到最后日期以及状态查询
+     * 根据起始日期到最后日期以及状态查询      金额累加
      * @param map
      * @return
      */
 
     Double sumByMap(Map map);
+
+    /**
+     * 根据起始日期到最后日期以及状态查询订单数
+     * @param map
+     * @return
+     */
+    Integer getUserCount(Map map);
 }

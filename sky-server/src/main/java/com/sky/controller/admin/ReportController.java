@@ -2,6 +2,7 @@ package com.sky.controller.admin;
 
 import com.sky.result.Result;
 import com.sky.service.ReportService;
+import com.sky.vo.OrderReportVO;
 import com.sky.vo.TurnoverReportVO;
 import com.sky.vo.UserReportVO;
 import io.swagger.annotations.Api;
@@ -63,4 +64,27 @@ public class ReportController {
         log.info("用户统计接口：{}，{}", begin, end);
         return Result.success(userReportVO);
     }
+
+    /**
+     *
+     * 订单统计接口
+     * - 有效订单指状态为 “已完成” 的订单
+     * - 基于可视化报表的折线图展示订单数据，X轴为日期，Y轴为订单数量
+     * - 根据时间选择区间，展示每天的订单总数和有效订单数
+     * - 展示所选时间区间内的有效订单数、总订单数、订单完成率，订单完成率 = 有效订单数 / 总订单数 * 100%
+     * @param begin
+     * @param end
+     * @return
+     */
+    @GetMapping("/ordersStatistics")
+    @ApiOperation("订单统计接口")
+    public Result<OrderReportVO> ordersStatistics(
+            @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate begin,
+            @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end) {
+        OrderReportVO orderReportVO = reportService.getOrderStatistics(begin, end);
+        log.info("订单统计接口：{}，{}", begin, end);
+        return Result.success(orderReportVO);
+    }
+
+
 }
