@@ -9,8 +9,8 @@ sky:
 
   alioss:
     endpoint: oss-cn-qingdao.aliyuncs.com
-    access-key-id: LTAI5tLoUtysKNWT1XV4mhfe
-    access-key-secret: BZ1w7nIetYIrdk2OlSv1utfNU3NwjT
+    access-key-id: ***********************
+    access-key-secret: ********************
     bucket-name: zhangxiaotian-sky-takeout
 
   redis:
@@ -20,8 +20,8 @@ sky:
     database: 0
 
   wechat:
-    appid: wxc98db81a83562281
-    secret: 81d569013a7c6a1ed95728ec8dbcf246
+    appid: ***************************
+    secret: *******************
 #    ???
     mchid: 1561414331
     mchSerialNo: 4B3B3DC35414AD50B1B755BAF8DE9CC7CF407606
